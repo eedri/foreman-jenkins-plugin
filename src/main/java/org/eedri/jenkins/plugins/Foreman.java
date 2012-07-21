@@ -16,49 +16,63 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
- * Sample {@link Builder}.
+ * Foreman Plugin {@link Builder}.
  *
  * <p>
  * When the user configures the project and enables this builder,
  * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked
- * and a new {@link HelloWorldBuilder} is created. The created
+ * and a new {@link Foreman} is created. The created
  * instance is persisted to the project configuration XML by using
  * XStream, so this allows you to use instance fields (like {@link #name})
  * to remember the configuration.
  *
  * <p>
  * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
- * method will be invoked. 
+ * method will be invoked.
  *
- * @author Kohsuke Kawaguchi
+ * @author Eyal Edri
  */
-public class HelloWorldBuilder extends Builder {
+public class Foreman extends Builder {
 
-    private final String name;
+    private final String vmName;
+    private final String hostgroup;
+    private final String cloudType;
+    private final Boolean deleteVm;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public HelloWorldBuilder(String name) {
-        this.name = name;
+    public Foreman(String vmName, String hostgroup, String cloudType, Boolean deleteVm) {
+        this.vmName = vmName;
+        this.hostgroup = hostgroup;
+        this.cloudType = cloudType;
+        this.deleteVm = deleteVm;
     }
 
     /**
      * We'll use this from the <tt>config.jelly</tt>.
      */
-    public String getName() {
-        return name;
+    public String getVmName() {
+        return vmName;
     }
 
+    public String getHostgroup() {
+        return hostgroup;
+    }
+    
+    public String getCloudType() {
+        return cloudType;
+    }
+    
+    public Boolean getDeleteVm() {
+        return deleteVm;
+    }
+    
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        // This is where you 'build' the project.
-        // Since this is a dummy, we just say 'hello world' and call that a build.
-
-        // This also shows how you can consult the global configuration of the builder
-        if (getDescriptor().getUseFrench())
-            listener.getLogger().println("Bonjour, "+name+"!");
-        else
-            listener.getLogger().println("Hello, "+name+"!");
+        //(getDescriptor().getUseFrench())
+        listener.getLogger().println("vm name, "+this.vmName+"!");
+        //String url = getDescriptor().getForemanUrl();
+        //listener.getLogger().println("foreman url, "+url+"!");
         return true;
     }
 
@@ -70,8 +84,8 @@ public class HelloWorldBuilder extends Builder {
         return (DescriptorImpl)super.getDescriptor();
     }
 
-    /**
-     * Descriptor for {@link HelloWorldBuilder}. Used as a singleton.
+	/**
+     * Descriptor for {@link Foreman}. Used as a singleton.
      * The class is marked as public so that it can be accessed from views.
      *
      * <p>
@@ -87,7 +101,9 @@ public class HelloWorldBuilder extends Builder {
          * <p>
          * If you don't want fields to be persisted, use <tt>transient</tt>.
          */
-        private boolean useFrench;
+        private String foremanUrl;
+        private String foremanUsername;
+        private String foremanPassword;
 
         /**
          * Performs on-the-fly validation of the form field 'name'.
@@ -97,17 +113,18 @@ public class HelloWorldBuilder extends Builder {
          * @return
          *      Indicates the outcome of the validation. This is sent to the browser.
          */
-        public FormValidation doCheckName(@QueryParameter String value)
+        public FormValidation doCheckURL(@QueryParameter String value)
                 throws IOException, ServletException {
             if (value.length() == 0)
-                return FormValidation.error("Please set a name");
+                return FormValidation.error("Please enter foreman URL");
+            // ** TODO: add URL validation here
             if (value.length() < 4)
-                return FormValidation.warning("Isn't the name too short?");
+                return FormValidation.warning("Isn't the URL too short?");
             return FormValidation.ok();
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            // Indicates that this builder can be used with all kinds of project types 
+            // Indicates that this builder can be used with all kinds of project types
             return true;
         }
 
@@ -115,29 +132,39 @@ public class HelloWorldBuilder extends Builder {
          * This human readable name is used in the configuration screen.
          */
         public String getDisplayName() {
-            return "Say hello world";
+            return "Create virtual machine via foreman";
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             // To persist global configuration information,
             // set that to properties and call save().
-            useFrench = formData.getBoolean("useFrench");
+            this.foremanUrl= formData.getString("foremanUrl");
+            this.foremanUsername = formData.getString("foremanUsername");
+            this.setForemanPassword(formData.getString("foremanPassword"));
+            
             // ^Can also use req.bindJSON(this, formData);
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
             save();
             return super.configure(req,formData);
         }
 
-        /**
-         * This method returns true if the global configuration says we should speak French.
-         *
-         * The method name is bit awkward because global.jelly calls this method to determine
-         * the initial state of the checkbox by the naming convention.
-         */
-        public boolean getUseFrench() {
-            return useFrench;
-        }
+		public String getForemanUrl() {
+			return foremanUrl;
+		}
+
+		public String getForemanUsername() {
+			return foremanUsername;
+		}
+
+		public String getForemanPassword() {
+			return foremanPassword;
+		}
+
+		public void setForemanPassword(String foremanPassword) {
+			this.foremanPassword = foremanPassword;
+		}
+
     }
 }
 

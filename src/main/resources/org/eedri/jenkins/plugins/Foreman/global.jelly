@@ -11,10 +11,18 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
-  <f:section title="Hello World Builder">
-    <f:entry title="French" field="useFrench"
-      description="Check if we should say hello in French">
-      <f:checkbox />
+  <f:section title="Foreman Server">
+    <f:entry title="URL" field="foremanUrl"
+      description="foreman server fully qualified domain name">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Username" field="foremanUsername"
+      description="foreman server username">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Password" field="foremanPassword"
+      description="foreman server password">
+       <f:password />
     </f:entry>
   </f:section>
 </j:jelly>

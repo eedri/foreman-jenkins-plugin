@@ -28,3 +28,12 @@ pip-log.txt
 
 # Target complied files
 target/
+
+# eclipse
+work/
+.settings/
+.classpath
+.project
+
+#logs
+*.log

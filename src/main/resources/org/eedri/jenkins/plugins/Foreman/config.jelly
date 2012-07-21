@@ -9,7 +9,16 @@
     Creates a text field that shows the value of the "name" property.
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
-  <f:entry title="Name" field="name">
+  <f:entry title="Virtual machine name to create" field="vmName">
     <f:textbox />
+  </f:entry>
+  <f:entry title="Foreman hostgroup" field="hostgroup">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Cloud provider" field="cloudType">
+    <f:textbox default="ovirt"/>
+  </f:entry>
+  <f:entry title="Delete on successful build" field="deletVm">
+    <f:checkbox default="False"/>
   </f:entry>
 </j:jelly>

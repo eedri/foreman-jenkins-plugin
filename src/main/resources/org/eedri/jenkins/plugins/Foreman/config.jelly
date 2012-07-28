@@ -18,7 +18,7 @@
   <f:entry title="Cloud provider" field="cloudType">
     <f:textbox default="ovirt"/>
   </f:entry>
-  <f:entry title="Delete on successful build" field="deletVm">
+  <f:entry title="Delete VM when job is done" field="deleteVm">
     <f:checkbox default="False"/>
   </f:entry>
 </j:jelly>

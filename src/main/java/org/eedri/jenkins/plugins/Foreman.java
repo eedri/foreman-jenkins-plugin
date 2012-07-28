@@ -1,8 +1,10 @@
 package org.eedri.jenkins.plugins;
+
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import hudson.model.AbstractBuild;
+import hudson.model.AutoCompletionCandidates;
 import hudson.model.BuildListener;
 import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
@@ -69,8 +71,10 @@ public class Foreman extends Builder {
     
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        //(getDescriptor().getUseFrench())
-        listener.getLogger().println("vm name, "+this.vmName+"!");
+        listener.getLogger().println(getVmName());
+        listener.getLogger().println(getHostgroup());
+        listener.getLogger().println(getCloudType());
+        listener.getLogger().println(getDeleteVm());
         //String url = getDescriptor().getForemanUrl();
         //listener.getLogger().println("foreman url, "+url+"!");
         return true;
@@ -88,9 +92,6 @@ public class Foreman extends Builder {
      * Descriptor for {@link Foreman}. Used as a singleton.
      * The class is marked as public so that it can be accessed from views.
      *
-     * <p>
-     * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
-     * for the actual HTML fragment for the configuration screen.
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
@@ -113,7 +114,8 @@ public class Foreman extends Builder {
          * @return
          *      Indicates the outcome of the validation. This is sent to the browser.
          */
-        public FormValidation doCheckURL(@QueryParameter String value)
+        //TODO: add proper fqdn validation
+        public FormValidation doCheckForemanUrl(@QueryParameter String value)
                 throws IOException, ServletException {
             if (value.length() == 0)
                 return FormValidation.error("Please enter foreman URL");
@@ -123,16 +125,44 @@ public class Foreman extends Builder {
             return FormValidation.ok();
         }
 
+        
+        public FormValidation doTestConnection(@QueryParameter("foremanUrl") final String foremanUrl, 
+                @QueryParameter("foremanUsername") final String foremanUsername, 
+                @QueryParameter("foremanPassword)") final String foremanPassword) 
+                		throws IOException, ServletException {
+            try {
+                
+                return FormValidation.ok("Success");
+            } catch (Exception e) {
+                return FormValidation.error("Client error : "+e.getMessage());
+            }
+        }
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             // Indicates that this builder can be used with all kinds of project types
             return true;
+        }
+        
+        public AutoCompletionCandidates doAutoCompleteHostgroup(@QueryParameter String value) {
+            AutoCompletionCandidates c = new AutoCompletionCandidates();
+            for (String hostgroup : HOSTGROUPS)
+                if (hostgroup.toLowerCase().startsWith(value.toLowerCase()))
+                    c.add(hostgroup);
+            return c;
+        }
+        
+        public AutoCompletionCandidates doAutoCompleteCloudType(@QueryParameter String value) {
+            AutoCompletionCandidates c = new AutoCompletionCandidates();
+            for (String cloud : CLOUDS)
+                if (cloud.toLowerCase().startsWith(value.toLowerCase()))
+                    c.add(cloud);
+            return c;
         }
 
         /**
          * This human readable name is used in the configuration screen.
          */
         public String getDisplayName() {
-            return "Create virtual machine via foreman";
+            return "Create a Virtual Machine";
         }
 
         @Override
@@ -166,5 +196,19 @@ public class Foreman extends Builder {
 		}
 
     }
+    
+    //TODO: read this from foreman 
+    private static final String[] HOSTGROUPS = new String[]{
+        "RHEL-63",
+        "FEDORA-16",
+        "FEDROA-17"
+    };
+    
+    //TODO: read this from foreman
+    private static final String[] CLOUDS = new String[]{
+        "ovirt",
+        "libvirt",
+        "amazon"
+    };
 }
 

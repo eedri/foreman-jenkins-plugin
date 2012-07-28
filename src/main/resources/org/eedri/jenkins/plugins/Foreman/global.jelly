@@ -24,5 +24,8 @@
       description="foreman server password">
        <f:password />
     </f:entry>
+    <f:validateButton
+  	 title="${%Test Connection}" progress="${%Testing...}"
+   	 method="testConnection" with="foremanUrl,foremanUsername,foremanPassword" />
   </f:section>
 </j:jelly>

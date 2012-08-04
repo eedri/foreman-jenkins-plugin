@@ -13,6 +13,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
+import org.eedri.jenkins.plugins.ForemanHttpController;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -102,9 +103,10 @@ public class Foreman extends Builder {
          * <p>
          * If you don't want fields to be persisted, use <tt>transient</tt>.
          */
-        private String foremanUrl;
-        private String foremanUsername;
-        private String foremanPassword;
+        private String url;
+        private int port;
+        private String username;
+        private String password;
 
         /**
          * Performs on-the-fly validation of the form field 'name'.
@@ -115,7 +117,7 @@ public class Foreman extends Builder {
          *      Indicates the outcome of the validation. This is sent to the browser.
          */
         //TODO: add proper fqdn validation
-        public FormValidation doCheckForemanUrl(@QueryParameter String value)
+        public FormValidation doCheckUrl(@QueryParameter String value)
                 throws IOException, ServletException {
             if (value.length() == 0)
                 return FormValidation.error("Please enter foreman URL");
@@ -125,13 +127,18 @@ public class Foreman extends Builder {
             return FormValidation.ok();
         }
 
-        
-        public FormValidation doTestConnection(@QueryParameter("foremanUrl") final String foremanUrl, 
-                @QueryParameter("foremanUsername") final String foremanUsername, 
-                @QueryParameter("foremanPassword)") final String foremanPassword) 
+        //TODO: add real foreman server validation
+        public FormValidation doTestConnection(@QueryParameter("url") final String url,
+        		@QueryParameter("port") final int port,
+                @QueryParameter("username") final String username, 
+                @QueryParameter("password") final String password)
                 		throws IOException, ServletException {
             try {
+                ForemanHttpController foremanHttpController = 
+                		new ForemanHttpController(url, port, username, password);
                 
+                // run simple GET with basic auth to check server connection
+                foremanHttpController.validateServerConn();
                 return FormValidation.ok("Success");
             } catch (Exception e) {
                 return FormValidation.error("Client error : "+e.getMessage());
@@ -169,9 +176,10 @@ public class Foreman extends Builder {
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             // To persist global configuration information,
             // set that to properties and call save().
-            this.foremanUrl= formData.getString("foremanUrl");
-            this.foremanUsername = formData.getString("foremanUsername");
-            this.setForemanPassword(formData.getString("foremanPassword"));
+            this.url= formData.getString("url");
+            this.port = formData.getInt("port");
+            this.username = formData.getString("username");
+            this.password = formData.getString("password");
             
             // ^Can also use req.bindJSON(this, formData);
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
@@ -179,20 +187,24 @@ public class Foreman extends Builder {
             return super.configure(req,formData);
         }
 
-		public String getForemanUrl() {
-			return foremanUrl;
+		public String getUrl() {
+			return url;
 		}
 
-		public String getForemanUsername() {
-			return foremanUsername;
+		public String getUsername() {
+			return username;
 		}
 
-		public String getForemanPassword() {
-			return foremanPassword;
+		public String getPassword() {
+			return password;
+		}
+		
+		public int getPort() {
+			return port;
 		}
 
-		public void setForemanPassword(String foremanPassword) {
-			this.foremanPassword = foremanPassword;
+		public void setPassword(String password) {
+			this.password = password;
 		}
 
     }

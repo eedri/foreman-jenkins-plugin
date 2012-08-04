@@ -12,20 +12,24 @@
     so it should be straightforward to find them.
   -->
   <f:section title="Foreman Server">
-    <f:entry title="URL" field="foremanUrl"
+    <f:entry title="URL" field="url"
       description="foreman server fully qualified domain name">
       <f:textbox />
     </f:entry>
-    <f:entry title="Username" field="foremanUsername"
+    <f:entry title="Port" field="port"
+      description="foreman server port">
+      <f:textbox default="80"/>
+    </f:entry>
+    <f:entry title="Username" field="username"
       description="foreman server username">
       <f:textbox />
     </f:entry>
-    <f:entry title="Password" field="foremanPassword"
+    <f:entry title="Password" field="password"
       description="foreman server password">
        <f:password />
     </f:entry>
     <f:validateButton
   	 title="${%Test Connection}" progress="${%Testing...}"
-   	 method="testConnection" with="foremanUrl,foremanUsername,foremanPassword" />
+   	 method="testConnection" with="url,port,username,password" />
   </f:section>
 </j:jelly>
